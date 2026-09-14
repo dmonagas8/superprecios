@@ -53,25 +53,25 @@ export default function SorteoPage() {
     <main className="min-h-screen bg-brand-cream flex flex-col items-center">
       {/* Hero */}
       <div className="relative w-full max-w-md">
-        <div className="relative h-64 overflow-hidden rounded-b-[2.5rem] shadow-lg">
+        <div className="relative aspect-[25/24] overflow-hidden rounded-b-[2.5rem] shadow-lg">
           <img
             src="/hero.jpg"
-            alt="Sorteo Superprecios"
+            alt="Sorteo Superprecios: Termo Stanley y pava eléctrica"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-cream via-transparent to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-cream via-transparent to-transparent" />
+          <span className="absolute top-4 left-4 bg-white/95 text-brand-orange text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full shadow-sm">
+            🎉 Sorteo activo
+          </span>
         </div>
 
         <div className="px-6 -mt-2 text-center">
           <img
             src="/logo.png"
             alt="Superprecios"
-            className="w-14 h-14 mx-auto -mt-8 relative z-10 drop-shadow-lg"
+            className="w-14 h-14 mx-auto -mt-8 relative z-10 rounded-full ring-4 ring-brand-cream drop-shadow-lg"
           />
-          <p className="text-brand-orange font-bold tracking-tight text-sm mt-3">
-            Primavera en el Súper
-          </p>
-          <h1 className="font-display text-brand-ink text-4xl leading-[0.95] mt-1">
+          <h1 className="font-display text-brand-ink text-4xl leading-[0.95] mt-3">
             Ganate el combo de primavera
           </h1>
           <p className="text-brand-ink/60 text-sm mt-2 px-4">
@@ -86,33 +86,38 @@ export default function SorteoPage() {
           onSubmit={handleSubmit}
           className="bg-white rounded-3xl p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]"
         >
+          <p className="text-brand-ink/40 font-bold text-xs uppercase tracking-widest mb-2">
+            Tus datos
+          </p>
           <div className="space-y-3">
             <input
               name="nombre"
               placeholder="Nombre y apellido"
               value={form.nombre}
               onChange={handleChange}
-              className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-transparent focus:border-brand-orange focus:outline-none transition"
+              className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-black/5 focus:border-brand-orange focus:outline-none transition"
             />
             <div className="grid grid-cols-2 gap-3">
               <input
                 name="dni"
                 placeholder="DNI"
+                inputMode="numeric"
                 value={form.dni}
                 onChange={handleChange}
-                className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-transparent focus:border-brand-orange focus:outline-none transition"
+                className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-black/5 focus:border-brand-orange focus:outline-none transition"
               />
               <input
                 name="telefono"
                 placeholder="Teléfono"
+                inputMode="tel"
                 value={form.telefono}
                 onChange={handleChange}
-                className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-transparent focus:border-brand-orange focus:outline-none transition"
+                className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-black/5 focus:border-brand-orange focus:outline-none transition"
               />
             </div>
           </div>
 
-          <p className="text-brand-ink font-bold text-sm mt-5 mb-2">
+          <p className="text-brand-ink font-bold text-sm mt-6 mb-2">
             ¿En qué sucursal participás?
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -123,16 +128,21 @@ export default function SorteoPage() {
                   key={s.name}
                   type="button"
                   onClick={() => setForm({ ...form, sucursal: s.name })}
-                  style={{
-                    backgroundColor: s.bg,
-                    color: s.text,
-                    outline: selected ? `3px solid ${s.bg}` : 'none',
-                    outlineOffset: '2px',
-                  }}
-                  className={`rounded-xl py-2.5 px-2 text-sm font-bold text-center transition ${
-                    selected ? 'scale-[1.04] shadow-md' : 'opacity-80 hover:opacity-100'
+                  style={{ backgroundColor: s.bg, color: s.text }}
+                  className={`relative rounded-xl py-2.5 px-2 text-sm font-bold text-center transition ${
+                    selected
+                      ? 'ring-[3px] ring-white shadow-lg scale-[1.04]'
+                      : 'opacity-75 hover:opacity-100'
                   }`}
                 >
+                  {selected && (
+                    <span
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white flex items-center justify-center text-[10px] shadow"
+                      style={{ color: s.bg }}
+                    >
+                      ✓
+                    </span>
+                  )}
                   {s.name}
                 </button>
               )
@@ -150,7 +160,7 @@ export default function SorteoPage() {
           </button>
 
           <p className="text-center text-brand-ink/40 text-xs mt-4">
-            Al confirmar, te llevamos a nuestro Instagram — seguinos para ver al ganador
+            🔒 Al confirmar, te llevamos a nuestro Instagram — seguinos para ver al ganador
           </p>
         </form>
       </div>
