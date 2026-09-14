@@ -50,43 +50,56 @@ export default function SorteoPage() {
   }
 
   return (
-    <main className="min-h-screen bg-brand-cream flex flex-col items-center">
+    <main className="min-h-screen bg-brand-cream">
       {/* Hero */}
-      <div className="relative w-full max-w-md">
-        <div className="relative aspect-[25/24] overflow-hidden rounded-b-[2.5rem] shadow-lg">
-          <img
-            src="/hero.jpg"
-            alt="Sorteo Superprecios: Termo Stanley y pava eléctrica"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-cream via-transparent to-transparent" />
-          <span className="absolute top-4 left-4 bg-white/95 text-brand-orange text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full shadow-sm">
-            🎉 Sorteo activo
-          </span>
-        </div>
+      <section className="relative overflow-hidden bg-brand-orange px-5 pb-20 pt-12 text-center">
+        <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-12 h-72 w-72 rounded-full bg-black/10 blur-3xl" />
 
-        <div className="px-6 -mt-2 text-center">
+        <div className="relative mx-auto max-w-md">
           <img
             src="/logo.png"
             alt="Superprecios"
-            className="w-14 h-14 mx-auto -mt-8 relative z-10 rounded-full ring-4 ring-brand-cream drop-shadow-lg"
+            className="mx-auto h-16 w-16 rounded-full ring-4 ring-white/25 drop-shadow-lg"
           />
-          <h1 className="font-display text-brand-ink text-4xl leading-[0.95] mt-3">
+          <span className="mt-5 inline-block rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
+            🎉 Sorteo activo
+          </span>
+          <h1 className="font-display mt-4 text-5xl leading-[0.95] text-white">
             Ganate el combo de primavera
           </h1>
-          <p className="text-brand-ink/60 text-sm mt-2 px-4">
+          <p className="mt-4 px-4 text-sm text-white/80">
             Termo Stanley + pava eléctrica. Cargá tus datos y quedás participando.
           </p>
+          <a
+            href="#form"
+            className="mt-7 inline-block rounded-full bg-white px-8 py-3.5 text-base font-bold text-brand-orange shadow-lg transition hover:scale-[1.03]"
+          >
+            Quiero participar
+          </a>
+        </div>
+      </section>
+
+      {/* Prize card */}
+      <div className="relative z-10 mx-auto -mt-10 max-w-md px-5">
+        <div className="flex items-center gap-4 rounded-3xl bg-white p-5 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-cream text-3xl">
+            🎁
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-bold text-brand-ink">Termo Stanley + Pava eléctrica</p>
+            <p className="mt-0.5 text-xs text-brand-ink/50">Un ganador sorteado entre todos los participantes</p>
+          </div>
         </div>
       </div>
 
       {/* Form card */}
-      <div className="w-full max-w-md px-5 mt-6 mb-10">
+      <div id="form" className="mx-auto mb-12 mt-8 max-w-md scroll-mt-6 px-5">
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-3xl p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]"
+          className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]"
         >
-          <p className="text-brand-ink/40 font-bold text-xs uppercase tracking-widest mb-2">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
             Tus datos
           </p>
           <div className="space-y-3">
@@ -95,7 +108,7 @@ export default function SorteoPage() {
               placeholder="Nombre y apellido"
               value={form.nombre}
               onChange={handleChange}
-              className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-black/5 focus:border-brand-orange focus:outline-none transition"
+              className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
             />
             <div className="grid grid-cols-2 gap-3">
               <input
@@ -104,7 +117,7 @@ export default function SorteoPage() {
                 inputMode="numeric"
                 value={form.dni}
                 onChange={handleChange}
-                className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-black/5 focus:border-brand-orange focus:outline-none transition"
+                className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
               />
               <input
                 name="telefono"
@@ -112,14 +125,12 @@ export default function SorteoPage() {
                 inputMode="tel"
                 value={form.telefono}
                 onChange={handleChange}
-                className="w-full bg-brand-cream rounded-xl px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 border-2 border-black/5 focus:border-brand-orange focus:outline-none transition"
+                className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
               />
             </div>
           </div>
 
-          <p className="text-brand-ink font-bold text-sm mt-6 mb-2">
-            ¿En qué sucursal participás?
-          </p>
+          <p className="mb-2 mt-6 text-sm font-bold text-brand-ink">¿En qué sucursal participás?</p>
           <div className="grid grid-cols-2 gap-2">
             {SUCURSALES.map((s) => {
               const selected = form.sucursal === s.name
@@ -129,15 +140,13 @@ export default function SorteoPage() {
                   type="button"
                   onClick={() => setForm({ ...form, sucursal: s.name })}
                   style={{ backgroundColor: s.bg, color: s.text }}
-                  className={`relative rounded-xl py-2.5 px-2 text-sm font-bold text-center transition ${
-                    selected
-                      ? 'ring-[3px] ring-white shadow-lg scale-[1.04]'
-                      : 'opacity-75 hover:opacity-100'
+                  className={`relative rounded-xl px-2 py-2.5 text-center text-sm font-bold transition ${
+                    selected ? 'scale-[1.04] shadow-lg ring-[3px] ring-white' : 'opacity-75 hover:opacity-100'
                   }`}
                 >
                   {selected && (
                     <span
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white flex items-center justify-center text-[10px] shadow"
+                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] shadow"
                       style={{ color: s.bg }}
                     >
                       ✓
@@ -149,21 +158,30 @@ export default function SorteoPage() {
             })}
           </div>
 
-          {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
+          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand-orange hover:bg-[#e8410c] disabled:opacity-60 text-white font-bold text-lg py-4 rounded-full mt-6 transition shadow-[0_10px_25px_-8px_rgba(255,75,18,0.6)]"
+            className="mt-6 w-full rounded-full bg-brand-orange py-4 text-lg font-bold text-white shadow-[0_10px_25px_-8px_rgba(255,75,18,0.6)] transition hover:bg-[#e8410c] disabled:opacity-60"
           >
             {loading ? 'Enviando...' : 'Confirmar participación'}
           </button>
 
-          <p className="text-center text-brand-ink/40 text-xs mt-4">
+          <p className="mt-4 text-center text-xs text-brand-ink/40">
             🔒 Al confirmar, te llevamos a nuestro Instagram — seguinos para ver al ganador
           </p>
         </form>
       </div>
+
+      <footer className="px-5 pb-8 text-center">
+        <p className="text-xs text-brand-ink/40">
+          Superprecios · La Plata ·{' '}
+          <a href={INSTAGRAM_URL} className="underline hover:text-brand-orange">
+            @superprecioslaplata
+          </a>
+        </p>
+      </footer>
     </main>
   )
 }
