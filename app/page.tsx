@@ -85,7 +85,7 @@ export default function SorteoPage() {
         <div className="overflow-hidden rounded-3xl bg-white shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
           <div className="relative">
             <img
-              src="/premio.jpg"
+              src="/premio-v2.jpg"
               alt="Termo Stanley y pava eléctrica, el premio del sorteo"
               className="aspect-[10/9] w-full object-cover"
             />
