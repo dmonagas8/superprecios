@@ -82,13 +82,18 @@ export default function SorteoPage() {
 
       {/* Prize card */}
       <div className="relative z-10 mx-auto -mt-10 max-w-md px-5">
-        <div className="flex items-center gap-4 rounded-3xl bg-white p-4 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
-          <img
-            src="/premio.jpg"
-            alt="Termo Stanley y pava eléctrica, el premio del sorteo"
-            className="h-20 w-20 shrink-0 rounded-2xl object-cover"
-          />
-          <div className="text-left">
+        <div className="overflow-hidden rounded-3xl bg-white shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+          <div className="relative">
+            <img
+              src="/premio.jpg"
+              alt="Termo Stanley y pava eléctrica, el premio del sorteo"
+              className="aspect-[10/9] w-full object-cover"
+            />
+            <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-brand-orange shadow-sm">
+              🎁 El premio
+            </span>
+          </div>
+          <div className="p-4 text-left">
             <p className="text-sm font-bold text-brand-ink">Termo Stanley + Pava eléctrica</p>
             <p className="mt-0.5 text-xs text-brand-ink/50">Un ganador sorteado entre todos los participantes</p>
           </div>
