@@ -42,7 +42,11 @@ export default function SorteoPage() {
     setLoading(false)
 
     if (insertError) {
-      setError('Hubo un error al registrar tu participación. Probá de nuevo.')
+      if (insertError.code === '23505') {
+        setError('Ese DNI ya está participando del sorteo.')
+      } else {
+        setError('Hubo un error al registrar tu participación. Probá de nuevo.')
+      }
       return
     }
 
