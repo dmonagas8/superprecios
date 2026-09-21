@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import confetti from 'canvas-confetti'
 import { supabase } from '@/lib/supabaseClient'
+import { tick, fanfare } from './sonido'
 
 const SUCURSALES = [
   'Pronto',
@@ -97,6 +98,7 @@ export default function SorteoEnVivo({
       setNombreVisible(secuencia[i].nombre)
       setSucursalVisible(secuencia[i].sucursal)
       setStepKey((k) => k + 1)
+      tick(700 + progreso * 500)
       if (progreso > 0.75) setClimax(true)
       await sleep(delay)
     }
@@ -105,6 +107,7 @@ export default function SorteoEnVivo({
     setGanador(gan as Ganador)
     setStage('result')
     lanzarConfetti()
+    fanfare()
     onGanador(gan as Ganador)
     setTimeout(() => setMostrarFlash(false), 400)
   }
@@ -139,6 +142,19 @@ export default function SorteoEnVivo({
       >
         ✕
       </button>
+
+      {/* marca visible durante todo el sorteo, por si el clip se recorta o resube sin contexto */}
+      <img
+        src="/logo.png"
+        alt="Superprecios"
+        className="absolute bottom-5 left-5 z-10 h-10 w-10 rounded-full ring-2 ring-white/30"
+      />
+
+      {(stage === 'spinning' || stage === 'result') && (
+        <span className="absolute bottom-5 right-5 z-10 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white/70">
+          🎁 Termo + Pava eléctrica
+        </span>
+      )}
 
       {stage === 'config' && (
         <div className="w-full max-w-sm">
