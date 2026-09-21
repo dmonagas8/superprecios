@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import SorteoEnVivo from './SorteoEnVivo'
 
 const SUCURSALES = [
   'Pronto',
@@ -19,23 +20,13 @@ type Stats = {
   ultimos: { nombre: string; sucursal: string; created_at: string }[]
 }
 
-type Ganador = {
-  nombre: string
-  dni: string
-  telefono: string
-  sucursal: string
-}
-
 export default function EstadisticasPage() {
   const [clave, setClave] = useState('')
   const [autenticado, setAutenticado] = useState(false)
   const [stats, setStats] = useState<Stats | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const [sucursalSorteo, setSucursalSorteo] = useState('')
-  const [ganador, setGanador] = useState<Ganador | null>(null)
-  const [sorteando, setSorteando] = useState(false)
+  const [sorteoEnVivo, setSorteoEnVivo] = useState(false)
 
   const cargarStats = async (claveInput: string) => {
     setLoading(true)
@@ -58,24 +49,6 @@ export default function EstadisticasPage() {
   const handleEntrar = (e: React.FormEvent) => {
     e.preventDefault()
     cargarStats(clave)
-  }
-
-  const handleSortear = async () => {
-    setSorteando(true)
-    setGanador(null)
-    const { data, error: rpcError } = await supabase
-      .rpc('admin_sortear_ganador', {
-        p_clave: clave,
-        p_sucursal: sucursalSorteo || null,
-      })
-      .single()
-    setSorteando(false)
-
-    if (rpcError || !data) {
-      setError('No se pudo sortear (¿hay participantes en esa sucursal?)')
-      return
-    }
-    setGanador(data as Ganador)
   }
 
   if (!autenticado) {
@@ -108,6 +81,7 @@ export default function EstadisticasPage() {
   }
 
   return (
+    <>
     <main className="min-h-screen bg-brand-cream px-5 py-10">
       <div className="mx-auto max-w-2xl space-y-6">
         <h1 className="font-display text-3xl text-brand-ink">Estadísticas del sorteo</h1>
@@ -152,36 +126,17 @@ export default function EstadisticasPage() {
           <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
             Sortear ganador
           </p>
-          <select
-            value={sucursalSorteo}
-            onChange={(e) => setSucursalSorteo(e.target.value)}
-            className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm focus:border-brand-orange focus:outline-none"
-          >
-            <option value="">Todas las sucursales</option>
-            {SUCURSALES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+          <p className="mb-3 text-sm text-brand-ink/60">
+            Abre una pantalla completa con ruleta y confetti, lista para grabar y subir a
+            Instagram.
+          </p>
           <button
-            onClick={handleSortear}
-            disabled={sorteando || (stats?.total ?? 0) === 0}
-            className="mt-3 w-full rounded-full bg-brand-orange py-3 font-bold text-white transition hover:bg-[#e8410c] disabled:opacity-60"
+            onClick={() => setSorteoEnVivo(true)}
+            disabled={(stats?.total ?? 0) === 0}
+            className="w-full rounded-full bg-brand-orange py-3 font-bold text-white transition hover:bg-[#e8410c] disabled:opacity-60"
           >
-            {sorteando ? 'Sorteando...' : '🎉 Sortear ganador'}
+            🎥 Sorteo en vivo
           </button>
-
-          {ganador && (
-            <div className="mt-4 rounded-2xl bg-brand-cream p-4 text-left">
-              <p className="text-xs font-bold uppercase tracking-widest text-brand-orange">
-                Ganador
-              </p>
-              <p className="mt-1 text-lg font-bold text-brand-ink">{ganador.nombre}</p>
-              <p className="text-sm text-brand-ink/60">DNI {ganador.dni} · {ganador.telefono}</p>
-              <p className="text-sm text-brand-ink/60">Sucursal: {ganador.sucursal}</p>
-            </div>
-          )}
         </div>
 
         {/* Últimos participantes */}
@@ -204,5 +159,7 @@ export default function EstadisticasPage() {
         </div>
       </div>
     </main>
+    {sorteoEnVivo && <SorteoEnVivo clave={clave} onClose={() => setSorteoEnVivo(false)} />}
+    </>
   )
 }
