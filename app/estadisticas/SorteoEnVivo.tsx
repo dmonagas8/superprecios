@@ -147,21 +147,28 @@ export default function SorteoEnVivo({
       <img
         src="/logo.png"
         alt="Superprecios"
-        className="absolute bottom-5 left-5 z-10 h-10 w-10 rounded-full ring-2 ring-white/30"
+        className="absolute top-5 left-1/2 z-10 h-12 w-12 -translate-x-1/2 rounded-full ring-2 ring-white/30"
       />
 
-      {(stage === 'spinning' || stage === 'result') && (
+      {stage === 'spinning' && (
         <span className="absolute bottom-5 right-5 z-10 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white/70">
           🎁 Termo + Pava eléctrica
         </span>
       )}
 
       {stage === 'config' && (
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm pt-12">
           <p className="text-sm font-bold uppercase tracking-widest text-white/70">
             Sorteo en vivo
           </p>
-          <h2 className="font-display mt-2 text-4xl text-white">¿Quién se lo lleva?</h2>
+          <div className="mt-4 overflow-hidden rounded-3xl border-2 border-white/20 shadow-lg">
+            <img
+              src="/premio-v3.jpg"
+              alt="Termo Stanley y pava eléctrica"
+              className="aspect-[16/10] w-full object-cover"
+            />
+          </div>
+          <h2 className="font-display mt-4 text-4xl text-white">¿Quién se lo lleva?</h2>
           <select
             value={sucursalFiltro}
             onChange={(e) => setSucursalFiltro(e.target.value)}
@@ -228,6 +235,13 @@ export default function SorteoEnVivo({
           <span className="mt-3 inline-block rounded-full bg-white/15 px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-white">
             📍 {ganador.sucursal}
           </span>
+          <div className="mx-auto mt-5 w-32 overflow-hidden rounded-2xl ring-2 ring-white/30">
+            <img
+              src="/premio-v3.jpg"
+              alt="Termo Stanley y pava eléctrica"
+              className="aspect-square w-full object-cover"
+            />
+          </div>
         </div>
       )}
     </div>
