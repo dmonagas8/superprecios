@@ -165,7 +165,7 @@ export default function SorteoEnVivo({
             <img
               src="/premio-v3.jpg"
               alt="Termo Stanley y pava eléctrica"
-              className="aspect-[16/10] w-full object-cover"
+              className="aspect-[900/820] w-full object-cover"
             />
           </div>
           <h2 className="font-display mt-4 text-4xl text-white">¿Quién se lo lleva?</h2>
@@ -235,11 +235,11 @@ export default function SorteoEnVivo({
           <span className="mt-3 inline-block rounded-full bg-white/15 px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-white">
             📍 {ganador.sucursal}
           </span>
-          <div className="mx-auto mt-5 w-32 overflow-hidden rounded-2xl ring-2 ring-white/30">
+          <div className="mx-auto mt-5 w-56 overflow-hidden rounded-2xl shadow-lg ring-2 ring-white/30">
             <img
               src="/premio-v3.jpg"
               alt="Termo Stanley y pava eléctrica"
-              className="aspect-square w-full object-cover"
+              className="aspect-[900/820] w-full object-cover"
             />
           </div>
         </div>
