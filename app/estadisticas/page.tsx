@@ -20,6 +20,8 @@ type Stats = {
   ultimos: { nombre: string; sucursal: string; created_at: string }[]
 }
 
+type Ganador = { nombre: string; dni: string; telefono: string; sucursal: string }
+
 export default function EstadisticasPage() {
   const [clave, setClave] = useState('')
   const [autenticado, setAutenticado] = useState(false)
@@ -27,6 +29,8 @@ export default function EstadisticasPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [sorteoEnVivo, setSorteoEnVivo] = useState(false)
+  const [ultimoGanador, setUltimoGanador] = useState<Ganador | null>(null)
+  const [mostrarContacto, setMostrarContacto] = useState(false)
 
   const cargarStats = async (claveInput: string) => {
     setLoading(true)
@@ -139,6 +143,38 @@ export default function EstadisticasPage() {
           </button>
         </div>
 
+        {/* Último ganador */}
+        {ultimoGanador && (
+          <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
+              🏆 Último ganador
+            </p>
+            <p className="text-lg font-bold text-brand-ink">{ultimoGanador.nombre}</p>
+            <p className="text-sm text-brand-ink/50">Sucursal {ultimoGanador.sucursal}</p>
+
+            {mostrarContacto ? (
+              <div className="mt-3 rounded-2xl bg-brand-cream p-4">
+                <p className="text-sm text-brand-ink">
+                  DNI {ultimoGanador.dni} · {ultimoGanador.telefono}
+                </p>
+                <a
+                  href={`tel:${ultimoGanador.telefono}`}
+                  className="mt-2 inline-block text-sm font-bold text-brand-orange underline"
+                >
+                  📞 Llamar ahora
+                </a>
+              </div>
+            ) : (
+              <button
+                onClick={() => setMostrarContacto(true)}
+                className="mt-3 w-full rounded-full border-2 border-brand-orange py-2.5 text-sm font-bold text-brand-orange transition hover:bg-brand-orange hover:text-white"
+              >
+                Contactar ganador
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Últimos participantes */}
         <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
           <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
@@ -159,7 +195,16 @@ export default function EstadisticasPage() {
         </div>
       </div>
     </main>
-    {sorteoEnVivo && <SorteoEnVivo clave={clave} onClose={() => setSorteoEnVivo(false)} />}
+    {sorteoEnVivo && (
+      <SorteoEnVivo
+        clave={clave}
+        onClose={() => setSorteoEnVivo(false)}
+        onGanador={(g) => {
+          setUltimoGanador(g)
+          setMostrarContacto(false)
+        }}
+      />
+    )}
     </>
   )
 }

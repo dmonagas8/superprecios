@@ -43,7 +43,15 @@ function lanzarConfetti() {
   setTimeout(() => disparo(90, 0.5, 70), 650)
 }
 
-export default function SorteoEnVivo({ clave, onClose }: { clave: string; onClose: () => void }) {
+export default function SorteoEnVivo({
+  clave,
+  onClose,
+  onGanador,
+}: {
+  clave: string
+  onClose: () => void
+  onGanador: (g: Ganador) => void
+}) {
   const [stage, setStage] = useState<'config' | 'spinning' | 'result'>('config')
   const [sucursalFiltro, setSucursalFiltro] = useState('')
   const [nombreVisible, setNombreVisible] = useState('')
@@ -51,7 +59,6 @@ export default function SorteoEnVivo({ clave, onClose }: { clave: string; onClos
   const [stepKey, setStepKey] = useState(0)
   const [climax, setClimax] = useState(false)
   const [ganador, setGanador] = useState<Ganador | null>(null)
-  const [mostrarDatos, setMostrarDatos] = useState(false)
   const [mostrarFlash, setMostrarFlash] = useState(false)
   const [error, setError] = useState('')
 
@@ -98,6 +105,7 @@ export default function SorteoEnVivo({ clave, onClose }: { clave: string; onClos
     setGanador(gan as Ganador)
     setStage('result')
     lanzarConfetti()
+    onGanador(gan as Ganador)
     setTimeout(() => setMostrarFlash(false), 400)
   }
 
@@ -165,18 +173,24 @@ export default function SorteoEnVivo({ clave, onClose }: { clave: string; onClos
           <p className="text-sm font-bold uppercase tracking-widest text-white/70">
             Sorteando...
           </p>
-          <div
-            className={`mt-6 flex h-32 items-center justify-center overflow-hidden rounded-3xl border-2 px-4 transition-all duration-300 ${
-              climax
-                ? 'scale-105 border-white bg-white/20 shadow-[0_0_40px_rgba(255,255,255,0.5)]'
-                : 'scale-100 border-white/20 bg-white/10'
-            }`}
-          >
-            <div key={stepKey} style={{ animation: 'slotFlip 0.18s ease-out' }}>
-              <p className="font-display text-3xl leading-tight text-white">{nombreVisible}</p>
-              <p className="mt-1 text-xs font-bold uppercase tracking-widest text-white/60">
-                {sucursalVisible}
-              </p>
+          <div className="relative mt-6">
+            {/* brillo detrás del recuadro, separado para que no se recorte mal */}
+            <div
+              className={`absolute -inset-3 rounded-[2rem] bg-white blur-xl transition-opacity duration-300 ${
+                climax ? 'opacity-60' : 'opacity-0'
+              }`}
+            />
+            <div
+              className={`relative flex h-32 items-center justify-center overflow-hidden rounded-3xl border-2 bg-white/10 px-4 transition-all duration-300 ${
+                climax ? 'scale-105 border-white bg-white/20' : 'scale-100 border-white/20'
+              }`}
+            >
+              <div key={stepKey} style={{ animation: 'slotFlip 0.18s ease-out' }}>
+                <p className="font-display text-3xl leading-tight text-white">{nombreVisible}</p>
+                <p className="mt-1 text-xs font-bold uppercase tracking-widest text-white/60">
+                  {sucursalVisible}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -192,19 +206,6 @@ export default function SorteoEnVivo({ clave, onClose }: { clave: string; onClos
           <span className="mt-3 inline-block rounded-full bg-white/15 px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-white">
             📍 {ganador.sucursal}
           </span>
-
-          {mostrarDatos ? (
-            <p className="mt-3 text-sm text-white/70">
-              DNI {ganador.dni} · {ganador.telefono}
-            </p>
-          ) : (
-            <button
-              onClick={() => setMostrarDatos(true)}
-              className="mt-3 text-sm text-white/60 underline"
-            >
-              Ver DNI y teléfono (privado, para contactarlo)
-            </button>
-          )}
         </div>
       )}
     </div>
