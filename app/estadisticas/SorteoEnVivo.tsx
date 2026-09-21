@@ -174,15 +174,15 @@ export default function SorteoEnVivo({
             Sorteando...
           </p>
           <div className="relative mt-6">
-            {/* brillo detrás del recuadro, separado para que no se recorte mal */}
+            {/* brillo dorado detrás del recuadro, separado para que no se recorte mal */}
             <div
-              className={`absolute -inset-3 rounded-[2rem] bg-white blur-xl transition-opacity duration-300 ${
-                climax ? 'opacity-60' : 'opacity-0'
+              className={`absolute -inset-3 rounded-[2rem] bg-[#FFD23F] blur-xl transition-opacity duration-300 ${
+                climax ? 'opacity-70' : 'opacity-0'
               }`}
             />
             <div
-              className={`relative flex h-32 items-center justify-center overflow-hidden rounded-3xl border-2 bg-white/10 px-4 transition-all duration-300 ${
-                climax ? 'scale-105 border-white bg-white/20' : 'scale-100 border-white/20'
+              className={`relative flex h-32 items-center justify-center overflow-hidden rounded-3xl border-2 bg-black/20 px-4 transition-all duration-300 ${
+                climax ? 'scale-105 border-[#FFD23F]' : 'scale-100 border-white/25'
               }`}
             >
               <div key={stepKey} style={{ animation: 'slotFlip 0.18s ease-out' }}>
