@@ -169,29 +169,35 @@ export default function SorteoEnVivo({
       )}
 
       {stage === 'spinning' && (
-        <div className="relative w-full max-w-sm">
-          <p className="text-sm font-bold uppercase tracking-widest text-white/70">
+        <div className="relative flex h-32 w-full max-w-sm flex-col items-center justify-center px-4">
+          <p className="absolute -top-10 text-sm font-bold uppercase tracking-widest text-white/70">
             Sorteando...
           </p>
-          <div className="relative mt-6">
-            {/* brillo dorado detrás del recuadro, separado para que no se recorte mal */}
-            <div
-              className={`absolute -inset-3 rounded-[2rem] bg-[#FFD23F] blur-xl transition-opacity duration-300 ${
-                climax ? 'opacity-70' : 'opacity-0'
-              }`}
-            />
-            <div
-              className={`relative flex h-32 items-center justify-center overflow-hidden rounded-3xl border-2 bg-black/20 px-4 transition-all duration-300 ${
-                climax ? 'scale-105 border-[#FFD23F]' : 'scale-100 border-white/25'
+          <div
+            key={stepKey}
+            className="transition-transform duration-200"
+            style={{
+              animation: 'slotFlip 0.18s ease-out',
+              transform: climax ? 'scale(1.12)' : 'scale(1)',
+            }}
+          >
+            <p
+              className="font-display text-4xl leading-tight text-white transition-[text-shadow] duration-200"
+              style={{
+                textShadow: climax
+                  ? '0 0 28px rgba(255,210,63,0.95), 0 0 55px rgba(255,210,63,0.6)'
+                  : '0 0 0 rgba(255,210,63,0)',
+              }}
+            >
+              {nombreVisible}
+            </p>
+            <p
+              className={`mt-1 text-center text-xs font-bold uppercase tracking-widest transition-colors duration-200 ${
+                climax ? 'text-[#FFD23F]' : 'text-white/60'
               }`}
             >
-              <div key={stepKey} style={{ animation: 'slotFlip 0.18s ease-out' }}>
-                <p className="font-display text-3xl leading-tight text-white">{nombreVisible}</p>
-                <p className="mt-1 text-xs font-bold uppercase tracking-widest text-white/60">
-                  {sucursalVisible}
-                </p>
-              </div>
-            </div>
+              {sucursalVisible}
+            </p>
           </div>
         </div>
       )}
