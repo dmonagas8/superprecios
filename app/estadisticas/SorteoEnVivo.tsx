@@ -15,7 +15,7 @@ const SUCURSALES = [
 ]
 
 type Participante = { nombre: string; sucursal: string }
-type Ganador = { nombre: string; dni: string; telefono: string; sucursal: string }
+type Ganador = { nombre: string; dni: string; telefono: string; sucursal: string; monto: number }
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -66,18 +66,23 @@ export default function SorteoEnVivo({
   const empezar = async () => {
     setError('')
 
+    if (!sucursalFiltro) {
+      setError('Elegí una sucursal para sortear.')
+      return
+    }
+
     const [{ data: lista, error: e1 }, { data: gan, error: e2 }] = await Promise.all([
-      supabase.rpc('admin_lista_participantes', {
+      supabase.rpc('admin_lista_participantes_oc', {
         p_clave: clave,
-        p_sucursal: sucursalFiltro || null,
+        p_sucursal: sucursalFiltro,
       }),
       supabase
-        .rpc('admin_sortear_ganador', { p_clave: clave, p_sucursal: sucursalFiltro || null })
+        .rpc('admin_sortear_ganador_oc', { p_clave: clave, p_sucursal: sucursalFiltro })
         .single(),
     ])
 
     if (e1 || e2 || !gan || !lista || lista.length === 0) {
-      setError('No hay participantes para sortear en esa sucursal.')
+      setError('No hay participantes aprobados en esa sucursal todavía.')
       return
     }
 
@@ -152,7 +157,7 @@ export default function SorteoEnVivo({
 
       {stage === 'spinning' && (
         <span className="absolute bottom-5 right-5 z-10 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white/70">
-          🎁 Termo + Pava eléctrica
+          🎫 Orden de compra $50.000
         </span>
       )}
 
@@ -161,12 +166,10 @@ export default function SorteoEnVivo({
           <p className="text-sm font-bold uppercase tracking-widest text-white/70">
             Sorteo en vivo
           </p>
-          <div className="mt-4 overflow-hidden rounded-3xl border-2 border-white/20 shadow-lg">
-            <img
-              src="/premio-v3.jpg"
-              alt="Termo Stanley y pava eléctrica"
-              className="aspect-[900/820] w-full object-cover"
-            />
+          <div className="mt-4 rounded-3xl border-2 border-white/20 bg-white/10 py-6 shadow-lg">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/70">Premio</p>
+            <p className="font-display mt-1 text-5xl text-white">$50.000</p>
+            <p className="mt-1 text-xs text-white/70">en orden de compra</p>
           </div>
           <h2 className="font-display mt-4 text-4xl text-white">¿Quién se lo lleva?</h2>
           <select
@@ -174,7 +177,7 @@ export default function SorteoEnVivo({
             onChange={(e) => setSucursalFiltro(e.target.value)}
             className="mt-6 w-full rounded-xl border-2 border-white/20 bg-white/10 px-4 py-3 text-sm text-white focus:border-white focus:outline-none [&>option]:text-brand-ink"
           >
-            <option value="">Todas las sucursales</option>
+            <option value="">Elegí la sucursal a sortear</option>
             {SUCURSALES.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -184,7 +187,8 @@ export default function SorteoEnVivo({
           {error && <p className="mt-3 text-sm text-white">{error}</p>}
           <button
             onClick={empezar}
-            className="mt-5 w-full rounded-full bg-white py-4 text-lg font-bold text-brand-orange shadow-lg transition hover:scale-[1.02]"
+            disabled={!sucursalFiltro}
+            className="mt-5 w-full rounded-full bg-white py-4 text-lg font-bold text-brand-orange shadow-lg transition hover:scale-[1.02] disabled:opacity-60"
           >
             🎬 Empezar sorteo
           </button>
@@ -235,12 +239,11 @@ export default function SorteoEnVivo({
           <span className="mt-3 inline-block rounded-full bg-white/15 px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-white">
             📍 {ganador.sucursal}
           </span>
-          <div className="mx-auto mt-5 w-56 overflow-hidden rounded-2xl shadow-lg ring-2 ring-white/30">
-            <img
-              src="/premio-v3.jpg"
-              alt="Termo Stanley y pava eléctrica"
-              className="aspect-[900/820] w-full object-cover"
-            />
+          <div className="mx-auto mt-5 rounded-3xl border-2 border-[#FFD23F]/40 bg-white/10 py-5">
+            <p className="font-display text-4xl text-[#FFD23F]">$50.000</p>
+            <p className="mt-1 text-xs font-bold uppercase tracking-widest text-white/70">
+              en orden de compra
+            </p>
           </div>
         </div>
       )}
