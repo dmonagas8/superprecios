@@ -13,7 +13,6 @@ const SUCURSALES = [
 ]
 
 const INSTAGRAM_URL = 'https://www.instagram.com/superprecioslaplata/'
-const MONTO_MINIMO = 20000
 
 export default function SorteoPage() {
   const [form, setForm] = useState({
@@ -21,12 +20,9 @@ export default function SorteoPage() {
     dni: '',
     telefono: '',
     sucursal: '',
-    monto: '',
   })
-  const [ticket, setTicket] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [enviado, setEnviado] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -36,45 +32,18 @@ export default function SorteoPage() {
     e.preventDefault()
     setError('')
 
-    if (!form.nombre || !form.dni || !form.telefono || !form.sucursal || !form.monto) {
+    if (!form.nombre || !form.dni || !form.telefono || !form.sucursal) {
       setError('Completá todos los campos para participar.')
       return
     }
 
-    const monto = Number(form.monto)
-    if (!Number.isFinite(monto) || monto < MONTO_MINIMO) {
-      setError(`El monto de tu compra tiene que ser de $${MONTO_MINIMO.toLocaleString('es-AR')} o más.`)
-      return
-    }
-
-    if (!ticket) {
-      setError('Subí una foto de tu ticket de compra.')
-      return
-    }
-
     setLoading(true)
-
-    const ext = ticket.name.split('.').pop() || 'jpg'
-    const path = `${crypto.randomUUID()}.${ext}`
-    const { error: uploadError } = await supabase.storage.from('tickets').upload(path, ticket, {
-      contentType: ticket.type || 'image/jpeg',
-    })
-
-    if (uploadError) {
-      setLoading(false)
-      setError('No pudimos subir la foto del ticket. Probá de nuevo.')
-      return
-    }
-
     const { error: rpcError } = await supabase.rpc('enviar_participacion_orden_compra', {
       p_nombre: form.nombre,
       p_dni: form.dni,
       p_telefono: form.telefono,
       p_sucursal: form.sucursal,
-      p_monto: monto,
-      p_ticket_path: path,
     })
-
     setLoading(false)
 
     if (rpcError) {
@@ -86,7 +55,7 @@ export default function SorteoPage() {
       return
     }
 
-    setEnviado(true)
+    window.location.href = INSTAGRAM_URL
   }
 
   return (
@@ -109,17 +78,14 @@ export default function SorteoPage() {
             Ganate una orden de compra de $50.000
           </h1>
           <p className="mt-4 px-4 text-sm text-white/80">
-            Comprá $20.000 o más en cualquiera de nuestras sucursales, subí tu ticket y quedás
-            participando.
+            Cargá tus datos y quedás participando.
           </p>
-          {!enviado && (
-            <a
-              href="#form"
-              className="mt-7 inline-block rounded-full bg-white px-8 py-3.5 text-base font-bold text-brand-orange shadow-lg transition hover:scale-[1.03]"
-            >
-              Quiero participar
-            </a>
-          )}
+          <a
+            href="#form"
+            className="mt-7 inline-block rounded-full bg-white px-8 py-3.5 text-base font-bold text-brand-orange shadow-lg transition hover:scale-[1.03]"
+          >
+            Quiero participar
+          </a>
         </div>
       </section>
 
@@ -131,131 +97,90 @@ export default function SorteoPage() {
           </p>
           <p className="font-display mt-1 text-5xl text-brand-ink">$50.000</p>
           <p className="mt-1 text-sm font-bold text-brand-ink/70">en orden de compra</p>
-          <p className="mt-3 text-xs text-brand-ink/50">
-            Un ganador por sucursal · Comprá $20.000 o más y subí tu ticket
-          </p>
+          <p className="mt-3 text-xs text-brand-ink/50">Un ganador por sucursal</p>
         </div>
       </div>
 
-      {enviado ? (
-        <div className="mx-auto mb-12 mt-8 max-w-md px-5">
-          <div className="rounded-3xl bg-white p-8 text-center shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
-            <p className="text-5xl">✅</p>
-            <h2 className="font-display mt-3 text-3xl text-brand-ink">¡Listo!</h2>
-            <p className="mt-2 text-sm text-brand-ink/60">
-              Recibimos tu ticket. Lo vamos a revisar y, si está todo en orden, quedás
-              participando del sorteo.
-            </p>
-            <a
-              href={INSTAGRAM_URL}
-              className="mt-6 inline-block w-full rounded-full bg-brand-orange py-3.5 text-sm font-bold text-white shadow-lg transition hover:bg-[#e8410c]"
-            >
-              Seguinos en Instagram para ver al ganador
-            </a>
-          </div>
-        </div>
-      ) : (
-        <div id="form" className="mx-auto mb-12 mt-8 max-w-md scroll-mt-6 px-5">
-          <form
-            onSubmit={handleSubmit}
-            className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]"
-          >
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
-              Tus datos
-            </p>
-            <div className="space-y-3">
-              <input
-                name="nombre"
-                placeholder="Nombre y apellido"
-                value={form.nombre}
-                onChange={handleChange}
-                className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  name="dni"
-                  placeholder="DNI"
-                  inputMode="numeric"
-                  value={form.dni}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
-                />
-                <input
-                  name="telefono"
-                  placeholder="Teléfono"
-                  inputMode="tel"
-                  value={form.telefono}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <p className="mb-2 mt-6 text-sm font-bold text-brand-ink">¿En qué sucursal participás?</p>
-            <div className="grid grid-cols-2 gap-2">
-              {SUCURSALES.map((s) => {
-                const selected = form.sucursal === s.name
-                return (
-                  <button
-                    key={s.name}
-                    type="button"
-                    onClick={() => setForm({ ...form, sucursal: s.name })}
-                    style={{ backgroundColor: s.bg, color: s.text }}
-                    className={`relative rounded-xl px-2 py-2.5 text-center text-sm font-bold transition ${
-                      selected ? 'scale-[1.04] shadow-lg ring-[3px] ring-white' : 'opacity-75 hover:opacity-100'
-                    }`}
-                  >
-                    {selected && (
-                      <span
-                        className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] shadow"
-                        style={{ color: s.bg }}
-                      >
-                        ✓
-                      </span>
-                    )}
-                    {s.name}
-                  </button>
-                )
-              })}
-            </div>
-
-            <p className="mb-2 mt-6 text-sm font-bold text-brand-ink">Tu compra</p>
+      {/* Form card */}
+      <div id="form" className="mx-auto mb-12 mt-8 max-w-md scroll-mt-6 px-5">
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]"
+        >
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
+            Tus datos
+          </p>
+          <div className="space-y-3">
             <input
-              name="monto"
-              placeholder="Monto de tu compra ($20.000 o más)"
-              inputMode="numeric"
-              value={form.monto}
+              name="nombre"
+              placeholder="Nombre y apellido"
+              value={form.nombre}
               onChange={handleChange}
               className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
             />
-
-            <label className="mt-3 flex cursor-pointer items-center justify-between rounded-xl border-2 border-dashed border-brand-orange/40 bg-brand-cream px-4 py-3 text-sm text-brand-ink transition hover:border-brand-orange">
-              <span>{ticket ? `📎 ${ticket.name}` : '📷 Subir foto del ticket'}</span>
+            <div className="grid grid-cols-2 gap-3">
               <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={(e) => setTicket(e.target.files?.[0] ?? null)}
+                name="dni"
+                placeholder="DNI"
+                inputMode="numeric"
+                value={form.dni}
+                onChange={handleChange}
+                className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
               />
-            </label>
+              <input
+                name="telefono"
+                placeholder="Teléfono"
+                inputMode="tel"
+                value={form.telefono}
+                onChange={handleChange}
+                className="w-full rounded-xl border-2 border-black/5 bg-brand-cream px-4 py-3 text-sm text-brand-ink placeholder:text-brand-ink/40 transition focus:border-brand-orange focus:outline-none"
+              />
+            </div>
+          </div>
 
-            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+          <p className="mb-2 mt-6 text-sm font-bold text-brand-ink">¿En qué sucursal participás?</p>
+          <div className="grid grid-cols-2 gap-2">
+            {SUCURSALES.map((s) => {
+              const selected = form.sucursal === s.name
+              return (
+                <button
+                  key={s.name}
+                  type="button"
+                  onClick={() => setForm({ ...form, sucursal: s.name })}
+                  style={{ backgroundColor: s.bg, color: s.text }}
+                  className={`relative rounded-xl px-2 py-2.5 text-center text-sm font-bold transition ${
+                    selected ? 'scale-[1.04] shadow-lg ring-[3px] ring-white' : 'opacity-75 hover:opacity-100'
+                  }`}
+                >
+                  {selected && (
+                    <span
+                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] shadow"
+                      style={{ color: s.bg }}
+                    >
+                      ✓
+                    </span>
+                  )}
+                  {s.name}
+                </button>
+              )
+            })}
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-6 w-full rounded-full bg-brand-orange py-4 text-lg font-bold text-white shadow-[0_10px_25px_-8px_rgba(255,75,18,0.6)] transition hover:bg-[#e8410c] disabled:opacity-60"
-            >
-              {loading ? 'Enviando...' : 'Enviar ticket y participar'}
-            </button>
+          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-            <p className="mt-4 text-center text-xs text-brand-ink/40">
-              🔒 Revisamos cada ticket antes de confirmar tu participación
-            </p>
-          </form>
-        </div>
-      )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-6 w-full rounded-full bg-brand-orange py-4 text-lg font-bold text-white shadow-[0_10px_25px_-8px_rgba(255,75,18,0.6)] transition hover:bg-[#e8410c] disabled:opacity-60"
+          >
+            {loading ? 'Enviando...' : 'Confirmar participación'}
+          </button>
+
+          <p className="mt-4 text-center text-xs text-brand-ink/40">
+            🔒 Al confirmar, te llevamos a nuestro Instagram — seguinos para ver al ganador
+          </p>
+        </form>
+      </div>
 
       <footer className="px-5 pb-8 text-center">
         <p className="text-xs text-brand-ink/40">

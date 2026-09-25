@@ -13,24 +13,11 @@ const SUCURSALES = [
   'Mercado da Onda',
 ]
 
-const TICKETS_URL = 'https://qichpcaconpxfgwpfyzl.supabase.co/storage/v1/object/public/tickets/'
-
 type Stats = {
   total_aprobados: number
   total_pendientes: number
   por_sucursal: Record<string, number>
-  ultimos: { nombre: string; sucursal: string; monto: number; created_at: string }[]
-}
-
-type Pendiente = {
-  id: string
-  nombre: string
-  dni: string
-  telefono: string
-  sucursal: string
-  monto: number
-  ticket_path: string
-  created_at: string
+  ultimos: { nombre: string; sucursal: string; monto: number | null; created_at: string }[]
 }
 
 type Ganador = { nombre: string; dni: string; telefono: string; sucursal: string; monto: number }
@@ -39,44 +26,33 @@ export default function EstadisticasPage() {
   const [clave, setClave] = useState('')
   const [autenticado, setAutenticado] = useState(false)
   const [stats, setStats] = useState<Stats | null>(null)
-  const [pendientes, setPendientes] = useState<Pendiente[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [revisando, setRevisando] = useState<string | null>(null)
   const [sorteoEnVivo, setSorteoEnVivo] = useState(false)
   const [ganadores, setGanadores] = useState<Ganador[]>([])
   const [contactoAbierto, setContactoAbierto] = useState<string | null>(null)
 
-  const cargarTodo = async (claveInput: string) => {
+  const cargarStats = async (claveInput: string) => {
     setLoading(true)
     setError('')
-    const [{ data: statsData, error: e1 }, { data: pendData, error: e2 }] = await Promise.all([
-      supabase.rpc('admin_stats_oc', { p_clave: claveInput }).single(),
-      supabase.rpc('admin_listar_pendientes_oc', { p_clave: claveInput }),
-    ])
+    const { data, error: rpcError } = await supabase
+      .rpc('admin_stats_oc', { p_clave: claveInput })
+      .single()
 
     setLoading(false)
 
-    if (e1 || e2 || !statsData) {
+    if (rpcError || !data) {
       setError('Clave incorrecta.')
       return
     }
 
     setAutenticado(true)
-    setStats(statsData as Stats)
-    setPendientes((pendData as Pendiente[]) ?? [])
+    setStats(data as Stats)
   }
 
   const handleEntrar = (e: React.FormEvent) => {
     e.preventDefault()
-    cargarTodo(clave)
-  }
-
-  const revisar = async (id: string, aprobar: boolean) => {
-    setRevisando(id)
-    await supabase.rpc('admin_revisar_oc', { p_clave: clave, p_id: id, p_aprobar: aprobar })
-    setRevisando(null)
-    cargarTodo(clave)
+    cargarStats(clave)
   }
 
   if (!autenticado) {
@@ -114,79 +90,20 @@ export default function EstadisticasPage() {
         <div className="mx-auto max-w-2xl space-y-6">
           <h1 className="font-display text-3xl text-brand-ink">Orden de compra $50.000</h1>
 
-          {/* Totales */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
-              <p className="text-xs font-bold uppercase tracking-widest text-brand-ink/40">
-                Aprobados
-              </p>
-              <p className="font-display mt-1 text-4xl text-brand-orange">
-                {stats?.total_aprobados ?? 0}
-              </p>
-            </div>
-            <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
-              <p className="text-xs font-bold uppercase tracking-widest text-brand-ink/40">
-                Por revisar
-              </p>
-              <p className="font-display mt-1 text-4xl text-brand-ink">
-                {stats?.total_pendientes ?? 0}
-              </p>
-            </div>
-          </div>
-
-          {/* Cola de revisión */}
+          {/* Total */}
           <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
-            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
-              Tickets por revisar ({pendientes.length})
+            <p className="text-xs font-bold uppercase tracking-widest text-brand-ink/40">
+              Total de participantes
             </p>
-            {pendientes.length === 0 ? (
-              <p className="text-sm text-brand-ink/50">No hay tickets pendientes.</p>
-            ) : (
-              <div className="space-y-4">
-                {pendientes.map((p) => (
-                  <div key={p.id} className="overflow-hidden rounded-2xl border border-black/5">
-                    <a href={TICKETS_URL + p.ticket_path} target="_blank" rel="noreferrer">
-                      <img
-                        src={TICKETS_URL + p.ticket_path}
-                        alt={`Ticket de ${p.nombre}`}
-                        className="max-h-80 w-full object-contain bg-black/5"
-                      />
-                    </a>
-                    <div className="p-4">
-                      <p className="text-sm font-bold text-brand-ink">{p.nombre}</p>
-                      <p className="text-xs text-brand-ink/50">
-                        DNI {p.dni} · {p.telefono} · {p.sucursal}
-                      </p>
-                      <p className="mt-1 text-sm font-bold text-brand-orange">
-                        ${p.monto.toLocaleString('es-AR')}
-                      </p>
-                      <div className="mt-3 flex gap-2">
-                        <button
-                          onClick={() => revisar(p.id, true)}
-                          disabled={revisando === p.id}
-                          className="flex-1 rounded-full bg-brand-orange py-2 text-sm font-bold text-white transition hover:bg-[#e8410c] disabled:opacity-60"
-                        >
-                          ✓ Aprobar
-                        </button>
-                        <button
-                          onClick={() => revisar(p.id, false)}
-                          disabled={revisando === p.id}
-                          className="flex-1 rounded-full border-2 border-black/10 py-2 text-sm font-bold text-brand-ink/60 transition hover:bg-black/5 disabled:opacity-60"
-                        >
-                          ✕ Rechazar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <p className="font-display mt-1 text-5xl text-brand-orange">
+              {stats?.total_aprobados ?? 0}
+            </p>
           </div>
 
           {/* Por sucursal */}
           <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
-              Aprobados por sucursal
+              Por sucursal
             </p>
             <div className="space-y-2">
               {SUCURSALES.map((s) => {
@@ -265,10 +182,10 @@ export default function EstadisticasPage() {
             </div>
           )}
 
-          {/* Últimos aprobados */}
+          {/* Últimos participantes */}
           <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
-              Últimos aprobados
+              Últimos en participar
             </p>
             {stats?.ultimos?.length ? (
               <div className="space-y-2">
@@ -278,14 +195,12 @@ export default function EstadisticasPage() {
                     className="flex justify-between border-b border-black/5 pb-2 text-sm last:border-0"
                   >
                     <span className="text-brand-ink">{u.nombre}</span>
-                    <span className="text-brand-ink/50">
-                      {u.sucursal} · ${u.monto.toLocaleString('es-AR')}
-                    </span>
+                    <span className="text-brand-ink/50">{u.sucursal}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-brand-ink/50">Todavía no hay aprobados.</p>
+              <p className="text-sm text-brand-ink/50">Todavía no hay participantes.</p>
             )}
           </div>
         </div>
@@ -295,7 +210,7 @@ export default function EstadisticasPage() {
           clave={clave}
           onClose={() => {
             setSorteoEnVivo(false)
-            cargarTodo(clave)
+            cargarStats(clave)
           }}
           onGanador={(g) => setGanadores((prev) => [...prev, g])}
         />
