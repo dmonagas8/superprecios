@@ -5,15 +5,6 @@ import confetti from 'canvas-confetti'
 import { supabase } from '@/lib/supabaseClient'
 import { tick, fanfare } from './sonido'
 
-const SUCURSALES = [
-  'Pronto',
-  'Sempre',
-  'Mercadinho',
-  'Tu Super',
-  'Super Más',
-  'Mercado da Onda',
-]
-
 type Participante = { nombre: string; sucursal: string }
 type Ganador = { nombre: string; dni: string; telefono: string; sucursal: string; monto: number }
 
@@ -54,7 +45,6 @@ export default function SorteoEnVivo({
   onGanador: (g: Ganador) => void
 }) {
   const [stage, setStage] = useState<'config' | 'spinning' | 'result'>('config')
-  const [sucursalFiltro, setSucursalFiltro] = useState('')
   const [nombreVisible, setNombreVisible] = useState('')
   const [sucursalVisible, setSucursalVisible] = useState('')
   const [stepKey, setStepKey] = useState(0)
@@ -66,23 +56,13 @@ export default function SorteoEnVivo({
   const empezar = async () => {
     setError('')
 
-    if (!sucursalFiltro) {
-      setError('Elegí una sucursal para sortear.')
-      return
-    }
-
     const [{ data: lista, error: e1 }, { data: gan, error: e2 }] = await Promise.all([
-      supabase.rpc('admin_lista_participantes_oc', {
-        p_clave: clave,
-        p_sucursal: sucursalFiltro,
-      }),
-      supabase
-        .rpc('admin_sortear_ganador_oc', { p_clave: clave, p_sucursal: sucursalFiltro })
-        .single(),
+      supabase.rpc('admin_lista_participantes_oc', { p_clave: clave }),
+      supabase.rpc('admin_sortear_ganador_oc', { p_clave: clave }).single(),
     ])
 
     if (e1 || e2 || !gan || !lista || lista.length === 0) {
-      setError('No hay participantes aprobados en esa sucursal todavía.')
+      setError('Todavía no hay participantes para sortear.')
       return
     }
 
@@ -172,23 +152,10 @@ export default function SorteoEnVivo({
             <p className="mt-1 text-xs text-white/70">en orden de compra</p>
           </div>
           <h2 className="font-display mt-4 text-4xl text-white">¿Quién se lo lleva?</h2>
-          <select
-            value={sucursalFiltro}
-            onChange={(e) => setSucursalFiltro(e.target.value)}
-            className="mt-6 w-full rounded-xl border-2 border-white/20 bg-white/10 px-4 py-3 text-sm text-white focus:border-white focus:outline-none [&>option]:text-brand-ink"
-          >
-            <option value="">Elegí la sucursal a sortear</option>
-            {SUCURSALES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
           {error && <p className="mt-3 text-sm text-white">{error}</p>}
           <button
             onClick={empezar}
-            disabled={!sucursalFiltro}
-            className="mt-5 w-full rounded-full bg-white py-4 text-lg font-bold text-brand-orange shadow-lg transition hover:scale-[1.02] disabled:opacity-60"
+            className="mt-5 w-full rounded-full bg-white py-4 text-lg font-bold text-brand-orange shadow-lg transition hover:scale-[1.02]"
           >
             🎬 Empezar sorteo
           </button>

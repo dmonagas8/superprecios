@@ -97,7 +97,7 @@ export default function SorteoPage() {
           </p>
           <p className="font-display mt-1 text-5xl text-brand-ink">$50.000</p>
           <p className="mt-1 text-sm font-bold text-brand-ink/70">en orden de compra</p>
-          <p className="mt-3 text-xs text-brand-ink/50">Un ganador por sucursal</p>
+          <p className="mt-3 text-xs text-brand-ink/50">Un ganador entre todas las sucursales</p>
         </div>
       </div>
 

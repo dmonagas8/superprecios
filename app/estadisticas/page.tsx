@@ -133,8 +133,8 @@ export default function EstadisticasPage() {
               Sortear ganador
             </p>
             <p className="mb-3 text-sm text-brand-ink/60">
-              Un ganador por sucursal. Abrí el sorteo en vivo y elegí la sucursal antes de
-              arrancar.
+              Un solo ganador entre todas las sucursales. Abrí el sorteo en vivo cuando estés
+              listo.
             </p>
             <button
               onClick={() => setSorteoEnVivo(true)}
