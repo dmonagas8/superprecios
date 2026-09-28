@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import SorteoEnVivo from './SorteoEnVivo'
+import Configuracion from './Configuracion'
 
 const SUCURSALES = [
   'Pronto',
@@ -31,6 +32,7 @@ export default function EstadisticasPage() {
   const [sorteoEnVivo, setSorteoEnVivo] = useState(false)
   const [ganadores, setGanadores] = useState<Ganador[]>([])
   const [contactoAbierto, setContactoAbierto] = useState<string | null>(null)
+  const [tab, setTab] = useState<'stats' | 'config'>('stats')
 
   const cargarStats = async (claveInput: string) => {
     setLoading(true)
@@ -90,6 +92,29 @@ export default function EstadisticasPage() {
         <div className="mx-auto max-w-2xl space-y-6">
           <h1 className="font-display text-3xl text-brand-ink">Orden de compra $50.000</h1>
 
+          <div className="flex gap-2">
+            <button
+              onClick={() => setTab('stats')}
+              className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
+                tab === 'stats' ? 'bg-brand-orange text-white' : 'bg-white text-brand-ink/50'
+              }`}
+            >
+              📊 Estadísticas
+            </button>
+            <button
+              onClick={() => setTab('config')}
+              className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
+                tab === 'config' ? 'bg-brand-orange text-white' : 'bg-white text-brand-ink/50'
+              }`}
+            >
+              ⚙️ Configuración
+            </button>
+          </div>
+
+          {tab === 'config' && <Configuracion clave={clave} />}
+
+          {tab === 'stats' && (
+            <>
           {/* Total */}
           <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
             <p className="text-xs font-bold uppercase tracking-widest text-brand-ink/40">
@@ -203,6 +228,8 @@ export default function EstadisticasPage() {
               <p className="text-sm text-brand-ink/50">Todavía no hay participantes.</p>
             )}
           </div>
+            </>
+          )}
         </div>
       </main>
       {sorteoEnVivo && (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
 const SUCURSALES = [
@@ -13,8 +13,32 @@ const SUCURSALES = [
 ]
 
 const INSTAGRAM_URL = 'https://www.instagram.com/superprecioslaplata/'
+const PREMIOS_URL = 'https://qichpcaconpxfgwpfyzl.supabase.co/storage/v1/object/public/premios/'
+
+type Config = {
+  titulo: string
+  subtitulo: string
+  premio_badge: string
+  premio_monto: string
+  premio_texto: string
+  premio_nota: string
+  imagen_premio_path: string | null
+  sorteo_activo: boolean
+}
+
+const CONFIG_DEFAULT: Config = {
+  titulo: 'Ganate una orden de compra de $50.000',
+  subtitulo: 'Cargá tus datos y quedás participando.',
+  premio_badge: '🎫 El premio',
+  premio_monto: '$50.000',
+  premio_texto: 'en orden de compra',
+  premio_nota: 'Un ganador entre todas las sucursales',
+  imagen_premio_path: null,
+  sorteo_activo: true,
+}
 
 export default function SorteoPage() {
+  const [config, setConfig] = useState<Config>(CONFIG_DEFAULT)
   const [form, setForm] = useState({
     nombre: '',
     dni: '',
@@ -23,6 +47,17 @@ export default function SorteoPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    supabase
+      .from('sorteo_config')
+      .select('*')
+      .eq('id', 1)
+      .single()
+      .then(({ data }) => {
+        if (data) setConfig(data as Config)
+      })
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -58,6 +93,30 @@ export default function SorteoPage() {
     window.location.href = INSTAGRAM_URL
   }
 
+  if (!config.sorteo_activo) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-brand-cream px-5 text-center">
+        <div className="max-w-sm">
+          <img
+            src="/logo.png"
+            alt="Superprecios"
+            className="mx-auto h-16 w-16 rounded-full ring-4 ring-brand-orange/25"
+          />
+          <h1 className="font-display mt-4 text-3xl text-brand-ink">Por ahora no hay sorteo activo</h1>
+          <p className="mt-2 text-sm text-brand-ink/60">
+            Seguinos en Instagram para enterarte del próximo.
+          </p>
+          <a
+            href={INSTAGRAM_URL}
+            className="mt-6 inline-block rounded-full bg-brand-orange px-8 py-3.5 text-sm font-bold text-white shadow-lg"
+          >
+            @superprecioslaplata
+          </a>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-brand-cream">
       {/* Hero */}
@@ -74,12 +133,8 @@ export default function SorteoPage() {
           <span className="mt-5 inline-block rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
             🎉 Sorteo activo
           </span>
-          <h1 className="font-display mt-4 text-5xl leading-[0.95] text-white">
-            Ganate una orden de compra de $50.000
-          </h1>
-          <p className="mt-4 px-4 text-sm text-white/80">
-            Cargá tus datos y quedás participando.
-          </p>
+          <h1 className="font-display mt-4 text-5xl leading-[0.95] text-white">{config.titulo}</h1>
+          <p className="mt-4 px-4 text-sm text-white/80">{config.subtitulo}</p>
           <a
             href="#form"
             className="mt-7 inline-block rounded-full bg-white px-8 py-3.5 text-base font-bold text-brand-orange shadow-lg transition hover:scale-[1.03]"
@@ -91,14 +146,34 @@ export default function SorteoPage() {
 
       {/* Prize card */}
       <div className="relative z-10 mx-auto -mt-10 max-w-md px-5">
-        <div className="overflow-hidden rounded-3xl bg-white p-6 text-center shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
-          <p className="text-xs font-bold uppercase tracking-widest text-brand-orange">
-            🎫 El premio
-          </p>
-          <p className="font-display mt-1 text-5xl text-brand-ink">$50.000</p>
-          <p className="mt-1 text-sm font-bold text-brand-ink/70">en orden de compra</p>
-          <p className="mt-3 text-xs text-brand-ink/50">Un ganador entre todas las sucursales</p>
-        </div>
+        {config.imagen_premio_path ? (
+          <div className="overflow-hidden rounded-3xl bg-white shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+            <div className="relative">
+              <img
+                src={PREMIOS_URL + config.imagen_premio_path}
+                alt="El premio del sorteo"
+                className="aspect-[10/9] w-full object-cover"
+              />
+              <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-brand-orange shadow-sm">
+                {config.premio_badge}
+              </span>
+            </div>
+            <div className="p-4 text-center">
+              <p className="font-display text-3xl text-brand-ink">{config.premio_monto}</p>
+              <p className="mt-1 text-sm font-bold text-brand-ink/70">{config.premio_texto}</p>
+              <p className="mt-2 text-xs text-brand-ink/50">{config.premio_nota}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-3xl bg-white p-6 text-center shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+            <p className="text-xs font-bold uppercase tracking-widest text-brand-orange">
+              {config.premio_badge}
+            </p>
+            <p className="font-display mt-1 text-5xl text-brand-ink">{config.premio_monto}</p>
+            <p className="mt-1 text-sm font-bold text-brand-ink/70">{config.premio_texto}</p>
+            <p className="mt-3 text-xs text-brand-ink/50">{config.premio_nota}</p>
+          </div>
+        )}
       </div>
 
       {/* Form card */}
