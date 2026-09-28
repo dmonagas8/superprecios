@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import SorteoEnVivo from './SorteoEnVivo'
 import Configuracion from './Configuracion'
+import { generarTarjetaGanador } from './generarGanador'
+import { getTema } from '@/lib/temas'
 
 const SUCURSALES = [
   'Pronto',
@@ -23,6 +25,17 @@ type Stats = {
 
 type Ganador = { nombre: string; dni: string; telefono: string; sucursal: string; monto: number }
 
+type Historial = {
+  id: string
+  titulo: string
+  premio_monto: string
+  premio_texto: string | null
+  total_participantes: number
+  ganador_nombre: string | null
+  ganador_sucursal: string | null
+  cerrado_at: string
+}
+
 export default function EstadisticasPage() {
   const [clave, setClave] = useState('')
   const [autenticado, setAutenticado] = useState(false)
@@ -32,8 +45,35 @@ export default function EstadisticasPage() {
   const [sorteoEnVivo, setSorteoEnVivo] = useState(false)
   const [ganadores, setGanadores] = useState<Ganador[]>([])
   const [contactoAbierto, setContactoAbierto] = useState<string | null>(null)
-  const [tab, setTab] = useState<'stats' | 'config'>('stats')
+  const [tab, setTab] = useState<'stats' | 'config' | 'historial'>('stats')
   const [exportando, setExportando] = useState(false)
+  const [premioActual, setPremioActual] = useState({
+    tema: 'naranja',
+    premio_monto: '$50.000',
+    premio_texto: 'en orden de compra',
+  })
+  const [generandoTarjeta, setGenerandoTarjeta] = useState<string | null>(null)
+  const [historial, setHistorial] = useState<Historial[] | null>(null)
+  const [cargandoHistorial, setCargandoHistorial] = useState(false)
+  const [confirmandoCierre, setConfirmandoCierre] = useState(false)
+  const [cerrando, setCerrando] = useState(false)
+  const [ganadorCierre, setGanadorCierre] = useState({
+    nombre: '',
+    dni: '',
+    telefono: '',
+    sucursal: '',
+  })
+
+  useEffect(() => {
+    supabase
+      .from('sorteo_config')
+      .select('tema, premio_monto, premio_texto')
+      .eq('id', 1)
+      .single()
+      .then(({ data }) => {
+        if (data) setPremioActual(data as typeof premioActual)
+      })
+  }, [])
 
   const cargarStats = async (claveInput: string) => {
     setLoading(true)
@@ -55,6 +95,74 @@ export default function EstadisticasPage() {
 
   const handleEntrar = (e: React.FormEvent) => {
     e.preventDefault()
+    cargarStats(clave)
+  }
+
+  const cargarHistorial = async () => {
+    setCargandoHistorial(true)
+    const { data } = await supabase.rpc('admin_historial_oc', { p_clave: clave })
+    setCargandoHistorial(false)
+    setHistorial((data as Historial[]) ?? [])
+  }
+
+  const irAHistorial = () => {
+    setTab('historial')
+    cargarHistorial()
+  }
+
+  const descargarTarjetaGanador = async (g: Ganador) => {
+    const key = g.dni + g.sucursal
+    setGenerandoTarjeta(key)
+    try {
+      const dataUrl = await generarTarjetaGanador({
+        nombre: g.nombre,
+        sucursal: g.sucursal,
+        premio_monto: premioActual.premio_monto,
+        premio_texto: premioActual.premio_texto,
+        tema: getTema(premioActual.tema),
+      })
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = `ganador-${g.nombre.replace(/\s+/g, '-').toLowerCase()}.png`
+      a.click()
+    } finally {
+      setGenerandoTarjeta(null)
+    }
+  }
+
+  const abrirConfirmacionCierre = () => {
+    const ultimo = ganadores[ganadores.length - 1]
+    setGanadorCierre(
+      ultimo
+        ? {
+            nombre: ultimo.nombre,
+            dni: ultimo.dni,
+            telefono: ultimo.telefono,
+            sucursal: ultimo.sucursal,
+          }
+        : { nombre: '', dni: '', telefono: '', sucursal: '' },
+    )
+    setConfirmandoCierre(true)
+  }
+
+  const cerrarSorteo = async () => {
+    setCerrando(true)
+    const { error: rpcError } = await supabase.rpc('admin_cerrar_sorteo_oc', {
+      p_clave: clave,
+      p_ganador_nombre: ganadorCierre.nombre || null,
+      p_ganador_dni: ganadorCierre.dni || null,
+      p_ganador_telefono: ganadorCierre.telefono || null,
+      p_ganador_sucursal: ganadorCierre.sucursal || null,
+    })
+    setCerrando(false)
+
+    if (rpcError) {
+      setError('No pudimos cerrar el sorteo. Probá de nuevo.')
+      return
+    }
+
+    setConfirmandoCierre(false)
+    setGanadores([])
     cargarStats(clave)
   }
 
@@ -152,9 +260,55 @@ export default function EstadisticasPage() {
             >
               ⚙️ Configuración
             </button>
+            <button
+              onClick={irAHistorial}
+              className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
+                tab === 'historial' ? 'bg-brand-orange text-white' : 'bg-white text-brand-ink/50'
+              }`}
+            >
+              🗂️ Historial
+            </button>
           </div>
 
-          {tab === 'config' && <Configuracion clave={clave} />}
+          {tab === 'config' && <Configuracion clave={clave} onClaveCambiada={setClave} />}
+
+          {tab === 'historial' && (
+            <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
+                Sorteos anteriores
+              </p>
+              {cargandoHistorial ? (
+                <p className="text-sm text-brand-ink/50">Cargando...</p>
+              ) : historial && historial.length > 0 ? (
+                <div className="space-y-3">
+                  {historial.map((h) => (
+                    <div key={h.id} className="rounded-2xl bg-brand-cream p-4">
+                      <p className="text-sm font-bold text-brand-ink">{h.titulo}</p>
+                      <p className="text-xs text-brand-ink/50">
+                        {new Date(h.cerrado_at).toLocaleDateString('es-AR')} ·{' '}
+                        {h.total_participantes} participantes
+                      </p>
+                      <p className="mt-1 text-sm text-brand-ink">
+                        {h.premio_monto} {h.premio_texto ?? ''}
+                      </p>
+                      {h.ganador_nombre ? (
+                        <p className="mt-1 text-sm font-bold text-brand-orange">
+                          🏆 {h.ganador_nombre} — {h.ganador_sucursal}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-brand-ink/40">Sin ganador registrado</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-brand-ink/50">
+                  Todavía no cerraste ningún sorteo. Cuando cierres uno desde Estadísticas, va a
+                  quedar acá.
+                </p>
+              )}
+            </div>
+          )}
 
           {tab === 'stats' && (
             <>
@@ -251,11 +405,97 @@ export default function EstadisticasPage() {
                         Contactar ganador
                       </button>
                     )}
+                    <button
+                      onClick={() => descargarTarjetaGanador(g)}
+                      disabled={generandoTarjeta === g.dni + g.sucursal}
+                      className="mt-2 ml-4 text-sm font-bold text-brand-orange underline disabled:opacity-50"
+                    >
+                      {generandoTarjeta === g.dni + g.sucursal
+                        ? 'Generando...'
+                        : '📸 Tarjeta para Instagram'}
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Cerrar sorteo */}
+          <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
+              Cerrar sorteo
+            </p>
+            <p className="mb-3 text-sm text-brand-ink/60">
+              Archiva este sorteo en el historial, vacía la lista de participantes y desactiva el
+              sorteo. Usalo cuando ya entregaste el premio y vas a arrancar uno nuevo. Exportá el
+              CSV antes si querés guardar el detalle.
+            </p>
+
+            {!confirmandoCierre ? (
+              <button
+                onClick={abrirConfirmacionCierre}
+                disabled={(stats?.total_aprobados ?? 0) === 0}
+                className="w-full rounded-full border-2 border-brand-orange py-3 font-bold text-brand-orange transition hover:bg-brand-orange hover:text-white disabled:opacity-40"
+              >
+                🔒 Cerrar sorteo y archivar
+              </button>
+            ) : (
+              <div className="space-y-3 rounded-2xl bg-brand-cream p-4">
+                <p className="text-xs font-bold text-brand-ink/60">
+                  Datos del ganador (opcional, para el historial)
+                </p>
+                <input
+                  placeholder="Nombre"
+                  value={ganadorCierre.nombre}
+                  onChange={(e) => setGanadorCierre({ ...ganadorCierre, nombre: e.target.value })}
+                  className="w-full rounded-xl border-2 border-black/5 bg-white px-4 py-2.5 text-sm text-brand-ink focus:outline-none"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    placeholder="DNI"
+                    value={ganadorCierre.dni}
+                    onChange={(e) => setGanadorCierre({ ...ganadorCierre, dni: e.target.value })}
+                    className="w-full rounded-xl border-2 border-black/5 bg-white px-4 py-2.5 text-sm text-brand-ink focus:outline-none"
+                  />
+                  <input
+                    placeholder="Teléfono"
+                    value={ganadorCierre.telefono}
+                    onChange={(e) =>
+                      setGanadorCierre({ ...ganadorCierre, telefono: e.target.value })
+                    }
+                    className="w-full rounded-xl border-2 border-black/5 bg-white px-4 py-2.5 text-sm text-brand-ink focus:outline-none"
+                  />
+                </div>
+                <input
+                  placeholder="Sucursal"
+                  value={ganadorCierre.sucursal}
+                  onChange={(e) =>
+                    setGanadorCierre({ ...ganadorCierre, sucursal: e.target.value })
+                  }
+                  className="w-full rounded-xl border-2 border-black/5 bg-white px-4 py-2.5 text-sm text-brand-ink focus:outline-none"
+                />
+                <p className="text-xs font-bold text-red-600">
+                  Esto borra a los {stats?.total_aprobados ?? 0} participantes actuales. No se
+                  puede deshacer.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmandoCierre(false)}
+                    className="flex-1 rounded-full bg-white py-2.5 text-sm font-bold text-brand-ink/60"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={cerrarSorteo}
+                    disabled={cerrando}
+                    className="flex-1 rounded-full bg-red-600 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+                  >
+                    {cerrando ? 'Cerrando...' : 'Confirmar cierre'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Últimos participantes */}
           <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">

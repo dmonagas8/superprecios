@@ -33,6 +33,7 @@ type Config = {
   mensaje_inactivo_texto: string
   mensaje_inactivo_boton: string
   bases_condiciones: string
+  fecha_cierre: string | null
 }
 
 const CONFIG_DEFAULT: Config = {
@@ -53,6 +54,7 @@ const CONFIG_DEFAULT: Config = {
   mensaje_inactivo_texto: 'Seguinos para enterarte del próximo.',
   mensaje_inactivo_boton: '@superprecioslaplata',
   bases_condiciones: '',
+  fecha_cierre: null,
 }
 
 export default function SorteoPage() {
@@ -77,6 +79,9 @@ export default function SorteoPage() {
         if (data) setConfig(data as Config)
       })
   }, [])
+
+  const activo =
+    config.sorteo_activo && (!config.fecha_cierre || new Date(config.fecha_cierre) > new Date())
 
   const tema = getTema(config.tema)
   const temaVars = {
@@ -118,7 +123,7 @@ export default function SorteoPage() {
     window.location.href = config.link_destino
   }
 
-  if (!config.sorteo_activo) {
+  if (!activo) {
     return (
       <main
         style={temaVars}

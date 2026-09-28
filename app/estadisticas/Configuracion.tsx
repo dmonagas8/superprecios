@@ -25,14 +25,38 @@ type Config = {
   mensaje_inactivo_texto: string
   mensaje_inactivo_boton: string
   bases_condiciones: string
+  fecha_cierre: string | null
 }
 
-export default function Configuracion({ clave }: { clave: string }) {
+function toLocalInput(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function fromLocalInput(local: string): string | null {
+  if (!local) return null
+  return new Date(local).toISOString()
+}
+
+export default function Configuracion({
+  clave,
+  onClaveCambiada,
+}: {
+  clave: string
+  onClaveCambiada: (nueva: string) => void
+}) {
   const [config, setConfig] = useState<Config | null>(null)
   const [imagenNueva, setImagenNueva] = useState<File | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [generandoQR, setGenerandoQR] = useState(false)
   const [mensaje, setMensaje] = useState('')
+  const [claveActual, setClaveActual] = useState('')
+  const [claveNueva, setClaveNueva] = useState('')
+  const [claveNuevaConfirmar, setClaveNuevaConfirmar] = useState('')
+  const [cambiandoClave, setCambiandoClave] = useState(false)
+  const [mensajeClave, setMensajeClave] = useState('')
 
   useEffect(() => {
     supabase
@@ -95,6 +119,7 @@ export default function Configuracion({ clave }: { clave: string }) {
       p_mensaje_inactivo_texto: config.mensaje_inactivo_texto,
       p_mensaje_inactivo_boton: config.mensaje_inactivo_boton,
       p_bases_condiciones: config.bases_condiciones,
+      p_fecha_cierre: config.fecha_cierre,
     })
 
     setGuardando(false)
@@ -125,6 +150,35 @@ export default function Configuracion({ clave }: { clave: string }) {
     } finally {
       setGenerandoQR(false)
     }
+  }
+
+  const cambiarClave = async () => {
+    setMensajeClave('')
+    if (claveNueva.length < 4) {
+      setMensajeClave('La clave nueva tiene que tener al menos 4 caracteres.')
+      return
+    }
+    if (claveNueva !== claveNuevaConfirmar) {
+      setMensajeClave('Las claves nuevas no coinciden.')
+      return
+    }
+    setCambiandoClave(true)
+    const { error } = await supabase.rpc('admin_cambiar_clave', {
+      p_clave_actual: claveActual,
+      p_clave_nueva: claveNueva,
+    })
+    setCambiandoClave(false)
+
+    if (error) {
+      setMensajeClave('Clave actual incorrecta.')
+      return
+    }
+
+    onClaveCambiada(claveNueva)
+    setClaveActual('')
+    setClaveNueva('')
+    setClaveNuevaConfirmar('')
+    setMensajeClave('✓ Clave actualizada.')
   }
 
   const temaActual = getTema(config.tema)
@@ -222,6 +276,27 @@ export default function Configuracion({ clave }: { clave: string }) {
           placeholder="https://..."
           className={inputClass}
         />
+
+        <label className={labelClass}>Cierre automático (opcional)</label>
+        <input
+          type="datetime-local"
+          value={toLocalInput(config.fecha_cierre)}
+          onChange={(e) => set('fecha_cierre', fromLocalInput(e.target.value))}
+          className={inputClass}
+        />
+        <div className="mt-1.5 flex items-center justify-between">
+          <p className="text-xs text-brand-ink/50">
+            Llegada esa fecha, el sorteo se cierra solo, aunque no entres a apagarlo.
+          </p>
+          {config.fecha_cierre && (
+            <button
+              onClick={() => set('fecha_cierre', null)}
+              className="ml-2 shrink-0 text-xs text-brand-ink/40 underline"
+            >
+              Sacar fecha
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Premio */}
@@ -363,6 +438,50 @@ export default function Configuracion({ clave }: { clave: string }) {
           className="w-full rounded-full border-2 border-brand-orange py-3 font-bold text-brand-orange transition hover:bg-brand-orange hover:text-white disabled:opacity-60"
         >
           {generandoQR ? 'Generando...' : '📥 Descargar QR para imprimir'}
+        </button>
+      </div>
+
+      {/* Cambiar clave */}
+      <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+        <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-ink/40">
+          Cambiar clave del panel
+        </p>
+        <label className={labelClass}>Clave actual</label>
+        <input
+          type="password"
+          value={claveActual}
+          onChange={(e) => setClaveActual(e.target.value)}
+          className={inputClass}
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>Clave nueva</label>
+            <input
+              type="password"
+              value={claveNueva}
+              onChange={(e) => setClaveNueva(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Confirmar clave nueva</label>
+            <input
+              type="password"
+              value={claveNuevaConfirmar}
+              onChange={(e) => setClaveNuevaConfirmar(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+        </div>
+        {mensajeClave && (
+          <p className="mt-3 text-sm font-bold text-brand-orange">{mensajeClave}</p>
+        )}
+        <button
+          onClick={cambiarClave}
+          disabled={cambiandoClave || !claveActual || !claveNueva}
+          className="mt-4 w-full rounded-full border-2 border-brand-orange py-3 font-bold text-brand-orange transition hover:bg-brand-orange hover:text-white disabled:opacity-40"
+        >
+          {cambiandoClave ? 'Cambiando...' : 'Cambiar clave'}
         </button>
       </div>
     </div>

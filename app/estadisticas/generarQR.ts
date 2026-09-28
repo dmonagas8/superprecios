@@ -5,7 +5,7 @@ const URL_SORTEO = 'https://sorteo-superprecios.vercel.app'
 const CREAM = '#FFF6EC'
 const INK = '#241708'
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+export function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => resolve(img)
@@ -14,7 +14,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   })
 }
 
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+export function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const words = text.split(' ')
   const lines: string[] = []
   let actual = ''
@@ -31,7 +31,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines
 }
 
-function roundRect(
+export function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
