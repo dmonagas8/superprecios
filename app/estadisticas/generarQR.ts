@@ -1,10 +1,9 @@
 import QRCode from 'qrcode'
+import type { Tema } from '@/lib/temas'
 
 const URL_SORTEO = 'https://sorteo-superprecios.vercel.app'
-const ORANGE = '#FF4B12'
 const CREAM = '#FFF6EC'
 const INK = '#241708'
-const GOLD = '#FFD23F'
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -53,7 +52,12 @@ export async function generarTarjetaQR(config: {
   titulo: string
   premio_monto: string
   premio_nota: string
+  tema: Tema
 }): Promise<string> {
+  const ORANGE = config.tema.primary
+  const ORANGE_DARK = config.tema.primaryDark
+  const GOLD = config.tema.gold
+
   await document.fonts.load('bold 80px Anton')
   await document.fonts.load('bold 130px Anton')
 
@@ -92,8 +96,11 @@ export async function generarTarjetaQR(config: {
   const topH = y + 40
   const qrY = topH - 40
 
-  // --- fondo naranja ---
-  ctx.fillStyle = ORANGE
+  // --- fondo con degradé del tema ---
+  const gradiente = ctx.createLinearGradient(0, 0, W, topH)
+  gradiente.addColorStop(0, ORANGE)
+  gradiente.addColorStop(1, ORANGE_DARK)
+  ctx.fillStyle = gradiente
   ctx.fillRect(0, 0, W, topH)
 
   // circulos decorativos
