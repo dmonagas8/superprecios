@@ -24,6 +24,7 @@ type Config = {
   mensaje_inactivo_titulo: string
   mensaje_inactivo_texto: string
   mensaje_inactivo_boton: string
+  bases_condiciones: string
 }
 
 export default function Configuracion({ clave }: { clave: string }) {
@@ -93,6 +94,7 @@ export default function Configuracion({ clave }: { clave: string }) {
       p_mensaje_inactivo_titulo: config.mensaje_inactivo_titulo,
       p_mensaje_inactivo_texto: config.mensaje_inactivo_texto,
       p_mensaje_inactivo_boton: config.mensaje_inactivo_boton,
+      p_bases_condiciones: config.bases_condiciones,
     })
 
     setGuardando(false)
@@ -316,6 +318,23 @@ export default function Configuracion({ clave }: { clave: string }) {
           value={config.mensaje_inactivo_boton}
           onChange={(e) => set('mensaje_inactivo_boton', e.target.value)}
           className={inputClass}
+        />
+      </div>
+
+      {/* Bases y condiciones */}
+      <div className="rounded-3xl bg-white p-6 shadow-[0_20px_45px_-15px_rgba(255,75,18,0.35)]">
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-ink/40">
+          Bases y condiciones
+        </p>
+        <p className="mt-1 text-xs text-brand-ink/50">
+          Se muestra en un link abajo del formulario. Si lo dejás vacío, el link no aparece.
+        </p>
+        <textarea
+          value={config.bases_condiciones}
+          onChange={(e) => set('bases_condiciones', e.target.value)}
+          rows={8}
+          placeholder="Quiénes pueden participar, cómo se sortea, cuándo, cómo se contacta al ganador, etc."
+          className={`${inputClass} resize-y`}
         />
       </div>
 

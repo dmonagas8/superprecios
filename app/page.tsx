@@ -32,6 +32,7 @@ type Config = {
   mensaje_inactivo_titulo: string
   mensaje_inactivo_texto: string
   mensaje_inactivo_boton: string
+  bases_condiciones: string
 }
 
 const CONFIG_DEFAULT: Config = {
@@ -51,6 +52,7 @@ const CONFIG_DEFAULT: Config = {
   mensaje_inactivo_titulo: 'Por ahora no hay sorteo activo',
   mensaje_inactivo_texto: 'Seguinos para enterarte del próximo.',
   mensaje_inactivo_boton: '@superprecioslaplata',
+  bases_condiciones: '',
 }
 
 export default function SorteoPage() {
@@ -63,6 +65,7 @@ export default function SorteoPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [verBases, setVerBases] = useState(false)
 
   useEffect(() => {
     supabase
@@ -280,6 +283,16 @@ export default function SorteoPage() {
             🔒 Al confirmar, te redirigimos — seguinos para ver al ganador
           </p>
         </form>
+
+        {config.bases_condiciones.trim() && (
+          <button
+            type="button"
+            onClick={() => setVerBases(true)}
+            className="mt-4 block w-full text-center text-xs text-brand-ink/40 underline"
+          >
+            Ver bases y condiciones
+          </button>
+        )}
       </div>
 
       <footer className="px-5 pb-8 text-center">
@@ -293,6 +306,31 @@ export default function SorteoPage() {
           </a>
         </p>
       </footer>
+
+      {verBases && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-5"
+          onClick={() => setVerBases(false)}
+        >
+          <div
+            className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-display text-xl text-brand-ink">Bases y condiciones</p>
+              <button
+                onClick={() => setVerBases(false)}
+                className="rounded-full bg-brand-cream px-3 py-1 text-sm text-brand-ink/60"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-brand-ink/70">
+              {config.bases_condiciones}
+            </p>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

@@ -33,6 +33,7 @@ export default function EstadisticasPage() {
   const [ganadores, setGanadores] = useState<Ganador[]>([])
   const [contactoAbierto, setContactoAbierto] = useState<string | null>(null)
   const [tab, setTab] = useState<'stats' | 'config'>('stats')
+  const [exportando, setExportando] = useState(false)
 
   const cargarStats = async (claveInput: string) => {
     setLoading(true)
@@ -55,6 +56,48 @@ export default function EstadisticasPage() {
   const handleEntrar = (e: React.FormEvent) => {
     e.preventDefault()
     cargarStats(clave)
+  }
+
+  const exportarCSV = async () => {
+    setExportando(true)
+    const { data, error: rpcError } = await supabase.rpc('admin_exportar_participantes_oc', {
+      p_clave: clave,
+    })
+    setExportando(false)
+
+    if (rpcError || !data) {
+      setError('No pudimos exportar. Probá de nuevo.')
+      return
+    }
+
+    const filas = data as {
+      nombre: string
+      dni: string
+      telefono: string
+      sucursal: string
+      created_at: string
+    }[]
+
+    const escapar = (v: string) => `"${v.replace(/"/g, '""')}"`
+    const encabezado = ['Nombre', 'DNI', 'Teléfono', 'Sucursal', 'Fecha'].join(',')
+    const lineas = filas.map((f) =>
+      [
+        escapar(f.nombre),
+        escapar(f.dni),
+        escapar(f.telefono),
+        escapar(f.sucursal),
+        escapar(new Date(f.created_at).toLocaleString('es-AR')),
+      ].join(','),
+    )
+    const csv = '﻿' + [encabezado, ...lineas].join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `participantes-sorteo-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   if (!autenticado) {
@@ -123,6 +166,13 @@ export default function EstadisticasPage() {
             <p className="font-display mt-1 text-5xl text-brand-orange">
               {stats?.total_aprobados ?? 0}
             </p>
+            <button
+              onClick={exportarCSV}
+              disabled={exportando || (stats?.total_aprobados ?? 0) === 0}
+              className="mt-4 w-full rounded-full border-2 border-brand-orange py-2.5 text-sm font-bold text-brand-orange transition hover:bg-brand-orange hover:text-white disabled:opacity-40"
+            >
+              {exportando ? 'Exportando...' : '📄 Exportar participantes a CSV'}
+            </button>
           </div>
 
           {/* Por sucursal */}
